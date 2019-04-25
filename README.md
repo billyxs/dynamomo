@@ -28,7 +28,7 @@ npm install --save dynamomo
 
 ```javascript
 // import
-import table from 'dynamomo'
+import dynamomo from 'dynamomo'
 ```
 
 
@@ -46,8 +46,6 @@ dynamomo.config({
 })
 
 ```
-
-
 
 
 # create(tableName, { primaryKey, indexName }) #
@@ -82,7 +80,7 @@ Retrieve a record using the Id field of the table, or other named Id field
 
 ```javascript
 // Uses the primary key Id by default
-dynamomo('items').getById(1)
+items.getById(1)
 ```
 
 
@@ -91,7 +89,7 @@ dynamomo('items').getById(1)
 
 Retrieve all the records for a table.  This handles the recursive actions needed for DynamoDB to get all records
 ```javascript
-dynamomo('items').getAll() // alias for scan
+items.getAll() // alias for scan
 ```
 
 
@@ -104,7 +102,7 @@ Retrieve all the records of a table from an array of Ids.  Uses DynamoDB batch g
 "Yo dawg, I heard you like batch requests.  So we put a batch request on your batch request so you can get all your records while getting some records"
 
 ```javascript
-dynamomo('items').getAllById([1, 2, 3, 4])
+items.getAllById([1, 2, 3, 4])
 ```
 
 
@@ -118,7 +116,7 @@ const id = 1
 const updateKeys = { EmailAddress: 'newemail@email.com' }
 const addParams = { ReturnValues: 'UPDATED_NEW' }
 
-dynamomo('items').updateById(id, updateKeys, addParams)
+items.updateById(id, updateKeys, addParams)
 ```
 
 
@@ -127,7 +125,7 @@ dynamomo('items').updateById(id, updateKeys, addParams)
 
 DynamoDB query operation.  Could use more love and testing.
 ```javascript
-dynamomo('items').query(params)
+items.query(params)
 ```
 
 
@@ -136,7 +134,7 @@ dynamomo('items').query(params)
 
 DynamoDB update operation.  Could use more love and testing.
 ```javascript
-dynamomo('items').update(dynamoUpdateParams)
+items.update(dynamoUpdateParams)
 ```
 
 # scan(params) #
@@ -144,7 +142,7 @@ dynamomo('items').update(dynamoUpdateParams)
 
 DyanamoDB scan operation.  This handles the recursive actions needed for DynamoDB to get all records
 ```javascript
-dynamomo('items').scan(params)
+items.scan(params)
 ```
 
 # deleteById(id, addParams) #
@@ -153,7 +151,7 @@ dynamomo('items').scan(params)
 Delete a record's data by specifying its Id. Provide additional dynamo client parameters as needed
 
 ```javascript
-dynamomo('items').deleteById(1)
+items.deleteById(1)
 ```
 
 
@@ -165,7 +163,7 @@ Since `MaxLimit` is not a property allowed by Dynamodb, the property is removed 
 
 **Example with getAll/scan**
 ```js
-const items = await dynamomo('items').getAll({ 
+const itemList = await items.getAll({ 
   MaxLimit: 300, 
   ProjectionExpression: 'ItemName, Category' 
 })
@@ -180,7 +178,7 @@ const items = await dynamomo('items').getAll({
 
 **Example with queryByKeys**
 ```js
-const items = await dynamomo('items').queryByKeys({
+const itemList = await items.queryByKeys({
   CategoryId: '2'
 }, { 
   MaxLimit: 2, 
