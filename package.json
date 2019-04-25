@@ -1,35 +1,37 @@
 {
   "name": "dynamomo",
-  "version": "1.0.0-alpha.0",
-  "description": "",
-  "main": "dist/index.js",
+  "version": "0.1.0-beta.4",
+  "description": "Dynamodb query helper",
+  "main": "index.js",
+  "engines": {
+    "node": ">=4.3.0",
+    "npm": "^4.0.0"
+  },
   "scripts": {
-    "test": "jest",
-    "test:watch": "npm test -- --watch",
-    "build": "tsc"
+    "test": "istanbul cover _mocha ./**/*.spec.js",
+    "lint": "eslint './**/*.js'",
+    "lint:fix": "npm run lint -- --fix"
   },
-  "author": "Billy Montgomery",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/hixme/dynamomo.git"
+  },
+  "author": "Billy Montgomery <billy.montgomery@gmail.com>",
   "license": "ISC",
-  "devDependencies": {
-    "@types/jest": "^24.0.11",
-    "@types/node": "^11.13.0",
-    "jest": "^24.7.1",
-    "ts-jest": "^24.0.2",
-    "typescript": "^3.4.2"
-  },
+  "homepage": "https://github.com/hixme/dynamomo#readme",
   "dependencies": {
-    "aws-sdk": "^2.421.0"
+    "aws-sdk": "^2.28.0",
+    "chalk": "^1.1.3",
+    "lodash": "^4.17.4"
   },
-  "jest": {
-    "moduleFileExtensions": [
-      "ts",
-      "tsx",
-      "js"
-    ],
-    "testPathIgnorePatterns": [
-      "/lib/",
-      "/node_modules/"
-    ],
-    "preset": "ts-jest"
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "eslint": "^3.18.0",
+    "eslint-config-standard": "^7.1.0",
+    "eslint-plugin-mocha": "^4.9.0",
+    "eslint-plugin-promise": "^3.5.0",
+    "eslint-plugin-standard": "^2.1.1",
+    "istanbul": "^0.4.5",
+    "mocha": "^3.2.0"
   }
 }

@@ -1,2 +1,12 @@
+.DS_STORE
+*.log
+.vscode
+yarn.lock
+
 node_modules
-dist
+
+coverage
+
+.idea/
+
+.vscode
