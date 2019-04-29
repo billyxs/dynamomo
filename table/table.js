@@ -1,4 +1,5 @@
 'use strict'
+const AWS = require('aws-sdk')
 const chalk = require('chalk')
 const _chunk = require('lodash/chunk')
 const _mapValues = require('lodash/mapValues')
@@ -9,10 +10,23 @@ const _isNumber = require('lodash/isNumber')
 const _isUndefined = require('lodash/isUndefined')
 const _omit = require('lodash/omit')
 
-const docClient = require('../dynamodb').client
-const config = require('../config')
 const Task = require('../task-message')
 const session = require('../table-session')
+
+// Don't set a default for tablePrefix in case it's not needed for a table
+// tablePrefix equates to stage - prod, dev, int
+let tablePrefix
+let debug = false
+let docClient
+
+function config(params) {
+  params = params || {}
+  tablePrefix = params.tablePrefix || params.stage
+  debug = params.debug === true
+}
+
+config.getTablePrefix = () => tablePrefix
+config.isDebug = () => debug
 
 /**
  * Checks data for Amazon types and
@@ -20,7 +34,7 @@ const session = require('../table-session')
  * @param data
  * @returns data
  */
-function transformData (data) {
+function transformData(data) {
   if (_get(data, 'constructor.name') === 'Set') {
     return data.values || data
   }
@@ -33,7 +47,7 @@ function transformData (data) {
   return data
 }
 
-function createRequest (action, startParams) {
+function createRequest(action, startParams) {
   startParams = startParams || {}
   // remove MaxLimit property
   const MaxLimit = startParams.MaxLimit
@@ -80,7 +94,7 @@ function createRequest (action, startParams) {
 
   return new Promise((resolve, reject) => {
     doAction(params)
-    function doAction (params) {
+    function doAction(params) {
       docClient[action](params)
         .promise()
         .then(res => {
@@ -168,7 +182,7 @@ function createRequest (action, startParams) {
  * Get the table instance name. Commonly prefixed with a stage prefix such as dev-, int-, prod-
  * @return {String}
  */
-function getTableName () {
+function getTableName() {
   const tablePrefix = this.tablePrefix || config.getTablePrefix()
   if (this.noPrefix) {
     return this.name
@@ -192,7 +206,7 @@ function getTableName () {
  * @param  {String} keyForId Specify the key name if it's not Id
  * @return {Promise}         Resolves the record Item
  */
-function getById (Id, addParams) {
+function getById(Id, addParams) {
   addParams = addParams || {}
 
   const params = Object.assign(
@@ -216,7 +230,7 @@ function getById (Id, addParams) {
  * @param  {Object} keys Any DynamoDB Key configuration
  * @return {[type]}      [description]
  */
-function getByKey (keys) {
+function getByKey(keys) {
   return createRequest('get', {
     TableName: this.getTableName(),
     Key: keys
@@ -230,7 +244,7 @@ function getByKey (keys) {
  * @param  {Object} params Accepts any scan parameters defined by user
  * @return {Promise}        [description]
  */
-function scan (params) {
+function scan(params) {
   params = params || {}
   params.TableName = this.getTableName()
 
@@ -244,7 +258,7 @@ function scan (params) {
  * @param  {String} keyForId  If ID is not the primary key, specify it
  * @return {Promise}
  */
-function getAllById (IdArray) {
+function getAllById(IdArray) {
   const reqIds = _chunk(IdArray.map(id => ({ Id: id })), 100)
 
   const requests = []
@@ -280,7 +294,7 @@ function getAllById (IdArray) {
  * @param {Object} addParams Raw DynamoDB query params
  * @return {Promise}
  */
-function query (params) {
+function query(params) {
   params = params || {}
   params.TableName = this.getTableName()
 
@@ -298,7 +312,7 @@ function query (params) {
  * @param {Object} addParams Raw DynamoDB query params
  * @return {Promise}
  */
-function queryByKeys (queryKeys, addParams) {
+function queryByKeys(queryKeys, addParams) {
   addParams = addParams || {}
 
   const keyConditionArray = []
@@ -326,7 +340,7 @@ function queryByKeys (queryKeys, addParams) {
  * @param  {Object} params Accepts any user defined update params
  * @return {Promise}
  */
-function update (params) {
+function update(params) {
   params = params || {}
   params.TableName = this.getTableName()
 
@@ -338,7 +352,7 @@ function update (params) {
  * @param  {Object} params Accepts any user defined update params
  * @return {Promise}
  */
-function put (params) {
+function put(params) {
   params = params || {}
   params.TableName = this.getTableName()
 
@@ -350,7 +364,7 @@ function put (params) {
  * @param  {Object} params Accepts any user defined update params
  * @return {Promise}
  */
-function updateById (Id, updateKeys, addParams) {
+function updateById(Id, updateKeys, addParams) {
   addParams = addParams || {}
   addParams.TableName = this.getTableName()
 
@@ -383,7 +397,7 @@ function updateById (Id, updateKeys, addParams) {
  * @param  {Object} params Accepts any user defined delete params
  * @return {Promise}
  */
-function deleteById (Id, addParams) {
+function deleteById(Id, addParams) {
   addParams = addParams || {}
   addParams.TableName = this.getTableName()
 
@@ -402,7 +416,7 @@ function deleteById (Id, addParams) {
  * @param  {Object} options Overrides and settings for the table
  * @return {Object} table instance
  */
-function CreateTable (name, options) {
+function CreateTable(name, options) {
   if (!name) {
     throw new Error('dynamomo: createTable requires a name to initialize')
   }
@@ -453,7 +467,34 @@ function CreateTable (name, options) {
   return this
 }
 
+module.exports.config = config
 module.exports.client = docClient
 module.exports.create = function (tableName, options) {
   return new CreateTable(tableName, options)
+}
+
+module.exports = function dynamomo(awsConfig) {
+  const DynamoDB = new AWS.DynamoDB(
+    Object.assign(
+      {
+        apiVersion: '2012-08-10'
+      },
+      awsConfig
+    )
+  )
+
+  // scope declared at the module level - not awesome
+  docClient = new AWS.DynamoDB.DocumentClient(awsConfig)
+
+  config({ tablePrefix, debug })
+
+  return {
+    create: function (tableName, options) {
+      return new CreateTable(tableName, options)
+    },
+    client: DynamoDB.client,
+    db: DynamoDB.db,
+    config: config,
+    getPolicy: require('../table-session').getPolicy
+  }
 }
