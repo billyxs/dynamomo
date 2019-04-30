@@ -23,12 +23,17 @@ npm install --save dynamomo
 8. query - DynamoDB query with provided params
 9. deleteById - delete a record by and Id key
 
-# Import 
+# Usage 
 ---
 
 ```javascript
 // import
 import dynamomo from 'dynamomo'
+
+const myDynamomo = dynamomo({ region: 'us-east-1' })
+
+const itemsTable = myDynamomo.create('items')
+const myItem = itemsTable.getById(1)
 ```
 
 
@@ -39,10 +44,12 @@ import dynamomo from 'dynamomo'
 // import
 import dynamomo from 'dynamomo'
 
-// Configure table with stage
+// Configure dynamomo with table prefix and logging 
 dynamomo.config({
-  tablePrefix: stage, // takes care of prefixing for different stages
-  debug: true // outputs dynamodb usage information as you query
+  debug: true,         // outputs dynamodb usage information as you query
+
+  tablePrefix: 'prod', // takes care of prefixing for tables.
+                       // eg: table name 'items' will be 'prod-items' 
 })
 
 ```
