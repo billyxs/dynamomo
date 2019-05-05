@@ -14,14 +14,16 @@ npm install --save dynamomo
 
 ## Table Instance ##
 1. client - a DynamoDB client
-2. getTableName - get the object's table name
-3. scan - get all records for a table
-4. getAll - alias for scan
-5. getById - get a record by an Id key
-6. getByKey - like getById, but allows any Key configuration to be set
-7. update - update a record by calling client.update()
-8. query - DynamoDB query with provided params
-9. deleteById - delete a record by and Id key
+1. getTableName - get the object's table name
+1. scan - get all records for a table
+1. getAll - alias for scan
+1. getById - get a record by the primary key 
+1. getAllById - get a records from a list of primary keys 
+1. updateById - update a record by the primary key 
+1. deleteById - delete a record by the primary key 
+1. getByKey - like getById, but allows any Key configuration to be set
+1. update - update a record by calling client.update()
+1. query - DynamoDB query with provided params
 
 # Usage 
 ---
@@ -77,7 +79,6 @@ const items = dynamomo.create('items', { indexName; 'ItemPublicKey-index' })
 
 ```
 
-
 # getById(id) #
 ---
 
@@ -89,16 +90,6 @@ Retrieve a record using the Id field of the table, or other named Id field
 // Uses the primary key Id by default
 items.getById(1)
 ```
-
-
-# getAll(scanParams) - Alias for scan #
----
-
-Retrieve all the records for a table.  This handles the recursive actions needed for DynamoDB to get all records
-```javascript
-items.getAll() // alias for scan
-```
-
 
 # getAllById(idArray) #
 ---
@@ -126,30 +117,16 @@ const addParams = { ReturnValues: 'UPDATED_NEW' }
 items.updateById(id, updateKeys, addParams)
 ```
 
-
-# query(params) #
+# queryByKeys(keys, addParams) #
 ---
 
-DynamoDB query operation.  Could use more love and testing.
+Get all records that match the list of keys provided. This often requires the use of the proper index of the table. The params will be packaged into the KeyConditionExpression DynamoDB needs to make the request.
+
 ```javascript
-items.query(params)
-```
+const keys = { categoryName: 'toys' }
+const addParams = { IndexName: 'CategoryName-index' }
 
-
-# update(params) #
----
-
-DynamoDB update operation.  Could use more love and testing.
-```javascript
-items.update(dynamoUpdateParams)
-```
-
-# scan(params) #
----
-
-DyanamoDB scan operation.  This handles the recursive actions needed for DynamoDB to get all records
-```javascript
-items.scan(params)
+items.queryByKeys(keys, addParams)
 ```
 
 # deleteById(id, addParams) #
@@ -160,6 +137,40 @@ Delete a record's data by specifying its Id. Provide additional dynamo client pa
 ```javascript
 items.deleteById(1)
 ```
+
+# getAll(scanParams) - Alias for scan #
+---
+
+Retrieve all the records for a table.  This handles the recursive actions needed for DynamoDB to get all records
+```javascript
+items.getAll() // alias for scan
+```
+
+# query(params) #
+---
+
+DynamoDB query operation.
+```javascript
+items.query(params)
+```
+
+
+# update(params) #
+---
+
+DynamoDB update operation. 
+```javascript
+items.update(dynamoUpdateParams)
+```
+
+# scan(params) #
+---
+
+DyanamoDB scan operation. This handles the recursive actions needed for DynamoDB to get all records.
+```javascript
+items.scan(params)
+```
+
 
 
 ## MaxLimit - special limit config property
